@@ -1132,7 +1132,7 @@
       
       function updateRoomUI(isInRoom) {
         if (isInRoom) {
-          createBtn.disabled = true;
+          createBtn.disabled = false;
           joinBtn.disabled = true;
           leaveBtn.disabled = false;
           roomInput.disabled = true;
@@ -1194,10 +1194,15 @@
       }
       
       // Event Listeners
-      createBtn.addEventListener('click', () => {
-        const randomRoom = Math.random().toString(36).substring(2, 8).toUpperCase();
-        socket.emit('create', randomRoom);
-      });
+            createBtn.addEventListener('click', () => {
+  console.log('Create Room button clicked');
+  const randomRoom = Math.random().toString(36).substring(2, 8).toUpperCase();
+  console.log('Attempting to create room:', randomRoom);
+  socket.emit('create', randomRoom);
+  
+  // Temporary status update for debugging
+  updateStatus(`Creating room ${randomRoom}...`, 'warning');
+});
       
       joinBtn.addEventListener('click', () => {
         const roomCode = roomInput.value.trim();
