@@ -1,1 +1,1285 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Enhanced Voice Chat</title>
+  <style>
+    :root {
+      --primary-color: #4a6fa5;
+      --secondary-color: #166088;
+      --success-color: #28a745;
+      --warning-color: #ffc107;
+      --danger-color: #dc3545;
+      --light-color: #f8f9fa;
+      --dark-color: #343a40;
+    }
+    
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+    }
+    
+    body {
+      font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+      line-height: 1.6;
+      color: var(--dark-color);
+      background-color: #f5f7fa;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      min-height: 100vh;
+      padding: 20px;
+    }
+    
+    .container {
+      width: 100%;
+      max-width: 600px;
+      background-color: white;
+      border-radius: 10px;
+      box-shadow: 0 4px 15px rgba(0, 0, 0, 0.1);
+      padding: 30px;
+      margin-top: 20px;
+    }
+    
+    header {
+      text-align: center;
+      margin-bottom: 25px;
+    }
+    
+    h1 {
+      color: var(--primary-color);
+      font-size: 2rem;
+      margin-bottom: 10px;
+    }
+    
+    .subtitle {
+      color: var(--secondary-color);
+      font-size: 1rem;
+    }
+    
+    .room-controls {
+      display: flex;
+      flex-direction: column;
+      gap: 15px;
+      margin-bottom: 20px;
+    }
+    
+    .input-group {
+      display: flex;
+      gap: 10px;
+    }
+    
+    input, select {
+      flex: 1;
+      padding: 12px;
+      border: 1px solid #ddd;
+      border-radius: 5px;
+      font-size: 1rem;
+    }
+    
+    button {
+      padding: 12px 20px;
+      background-color: var(--primary-color);
+      color: white;
+      border: none;
+      border-radius: 5px;
+      cursor: pointer;
+      font-size: 1rem;
+      transition: all 0.2s;
+    }
+    
+    button:hover {
+      background-color: var(--secondary-color);
+    }
+    
+    button:active {
+      transform: scale(0.98);
+    }
+    
+    button:disabled {
+      background-color: #cccccc;
+      cursor: not-allowed;
+    }
+    
+    .btn-success {
+      background-color: var(--success-color);
+    }
+    
+    .btn-success:hover {
+      background-color: #218838;
+    }
+    
+    .btn-danger {
+      background-color: var(--danger-color);
+    }
+    
+    .btn-danger:hover {
+      background-color: #c82333;
+    }
+    
+    #status {
+      padding: 15px;
+      border-radius: 5px;
+      margin: 15px 0;
+      text-align: center;
+      font-weight: 500;
+      display: none;
+    }
+    
+    .status-success {
+      background-color: rgba(40, 167, 69, 0.1);
+      color: var(--success-color);
+      display: block !important;
+    }
+    
+    .status-warning {
+      background-color: rgba(255, 193, 7, 0.1);
+      color: #856404;
+      display: block !important;
+    }
+    
+    .status-error {
+      background-color: rgba(220, 53, 69, 0.1);
+      color: var(--danger-color);
+      display: block !important;
+    }
+    
+    .connection-info {
+      background-color: #e9ecef;
+      padding: 15px;
+      border-radius: 5px;
+      margin-bottom: 20px;
+      display: none;
+    }
+    
+    .room-info {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      margin-bottom: 10px;
+    }
+    
+    .room-code {
+      font-weight: bold;
+      font-family: monospace;
+      font-size: 1.2rem;
+    }
+    
+    .copy-btn {
+      background: none;
+      color: var(--primary-color);
+      padding: 5px 10px;
+      font-size: 0.9rem;
+    }
+    
+    .copy-btn:hover {
+      background-color: rgba(74, 111, 165, 0.1);
+    }
+    
+    .audio-controls {
+      margin-top: 20px;
+      display: none;
+    }
+    
+    .control-group {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 15px;
+    }
+    
+    .volume-control {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+    }
+    
+    .volume-slider {
+      width: 100px;
+    }
+    
+    .voice-indicator {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+    }
+    
+    .indicator {
+      width: 15px;
+      height: 15px;
+      border-radius: 50%;
+      background-color: #ccc;
+      transition: all 0.2s;
+      position: relative;
+    }
+    
+    .indicator.active {
+      background-color: var(--success-color);
+    }
+    
+    .indicator.active::after {
+      content: '';
+      position: absolute;
+      top: -2px;
+      left: -2px;
+      right: -2px;
+      bottom: -2px;
+      border-radius: 50%;
+      border: 2px solid var(--success-color);
+      animation: pulse 1.5s infinite;
+    }
+    
+    .muted-indicator {
+      width: 15px;
+      height: 15px;
+      border-radius: 50%;
+      background-color: var(--danger-color);
+      position: relative;
+    }
+    
+    .muted-indicator::before {
+      content: '';
+      position: absolute;
+      top: 50%;
+      left: 0;
+      right: 0;
+      height: 2px;
+      background-color: white;
+      transform: rotate(45deg);
+    }
+    
+    .connection-status {
+      display: flex;
+      justify-content: space-between;
+      margin-top: 15px;
+    }
+    
+    .status-item {
+      display: flex;
+      align-items: center;
+      gap: 5px;
+      font-size: 0.9rem;
+    }
+    
+    .status-dot {
+      width: 10px;
+      height: 10px;
+      border-radius: 50%;
+      background-color: #ccc;
+    }
+    
+    .status-dot.connected {
+      background-color: var(--success-color);
+    }
+    
+    .status-dot.disconnected {
+      background-color: var(--danger-color);
+    }
+    
+    .status-dot.connecting {
+      background-color: var(--warning-color);
+      animation: blink 1s infinite;
+    }
+    
+    .connection-stats {
+      margin-top: 15px;
+      font-size: 0.9rem;
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 8px;
+    }
+    
+    .connection-stats div {
+      display: flex;
+      justify-content: space-between;
+    }
+    
+    .session-timer {
+      margin-top: 10px;
+      font-size: 0.9rem;
+      display: flex;
+      justify-content: space-between;
+    }
+    
+    .audio-visualizer {
+      margin-top: 20px;
+      display: flex;
+      flex-direction: column;
+      gap: 10px;
+    }
+    
+    .audio-visualizer canvas {
+      width: 100%;
+      height: 40px;
+      background-color: #f0f0f0;
+      border-radius: 5px;
+    }
+    
+    .recording-controls {
+      display: flex;
+      gap: 10px;
+      margin-top: 15px;
+    }
+    
+    #recordingStatus {
+      margin-top: 10px;
+      padding: 10px;
+      background-color: rgba(40, 167, 69, 0.1);
+      border-radius: 5px;
+      display: none;
+    }
+    
+    .call-summary {
+      background-color: white;
+      padding: 20px;
+      border-radius: 10px;
+      box-shadow: 0 4px 15px rgba(0, 0, 0, 0.1);
+      margin-top: 20px;
+      width: 100%;
+      max-width: 600px;
+      display: none;
+    }
+    
+    .call-summary h3 {
+      margin-bottom: 15px;
+      color: var(--primary-color);
+    }
+    
+    #summaryDetails {
+      margin-bottom: 15px;
+    }
+    
+    .device-selection {
+      margin-bottom: 15px;
+      display: none;
+    }
+    
+    .device-selector {
+      padding: 8px;
+      border-radius: 5px;
+      border: 1px solid #ddd;
+      width: 100%;
+      margin-top: 5px;
+    }
+    
+    .notification {
+      position: fixed;
+      bottom: 20px;
+      right: 20px;
+      background-color: var(--primary-color);
+      color: white;
+      padding: 15px;
+      border-radius: 5px;
+      box-shadow: 0 4px 8px rgba(0,0,0,0.2);
+      z-index: 1000;
+      animation: slideIn 0.5s forwards;
+    }
+    
+    @keyframes blink {
+      0%, 100% { opacity: 1; }
+      50% { opacity: 0.5; }
+    }
+    
+    @keyframes pulse {
+      0% { transform: scale(1); opacity: 1; }
+      70% { transform: scale(1.3); opacity: 0.7; }
+      100% { transform: scale(1); opacity: 0; }
+    }
+    
+    @keyframes slideIn {
+      from { transform: translateX(100%); }
+      to { transform: translateX(0); }
+    }
+    
+    @media (max-width: 600px) {
+      .container {
+        padding: 20px;
+      }
+      
+      h1 {
+        font-size: 1.5rem;
+      }
+      
+      .input-group {
+        flex-direction: column;
+      }
+      
+      button {
+        width: 100%;
+      }
+      
+      .control-group {
+        flex-direction: column;
+        align-items: flex-start;
+        gap: 10px;
+      }
+      
+      .voice-indicator {
+        width: 100%;
+        justify-content: space-between;
+      }
+      
+      .audio-visualizer canvas {
+        height: 30px;
+      }
+      
+      input, select, textarea {
+        font-size: 16px;
+      }
+      
+      button, input[type="range"] {
+        min-height: 44px;
+      }
+    }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <header>
+      <h1>Enhanced Voice Chat</h1>
+      <p class="subtitle">Simple, secure, real-time voice communication</p>
+    </header>
+    
+    <div class="room-controls">
+      <div class="input-group">
+        <button id="createBtn">Create Room</button>
+        <button id="leaveBtn" disabled>Leave Room</button>
+      </div>
+      <div class="input-group">
+        <input type="text" id="roomCode" placeholder="Enter Room Code" />
+        <button id="joinBtn">Join Room</button>
+      </div>
+    </div>
+    
+    <div id="deviceSelection" class="device-selection">
+      <label for="audioInput">Microphone:</label>
+      <select id="audioInput" class="device-selector"></select>
+    </div>
+    
+    <div id="status"></div>
+    
+    <div id="connectionInfo" class="connection-info">
+      <div class="room-info">
+        <div>Room Code: <span id="currentRoom" class="room-code"></span></div>
+        <button id="copyBtn" class="copy-btn">Copy</button>
+      </div>
+      <div class="connection-status">
+        <div class="status-item">
+          <span class="status-dot" id="localStatus"></span>
+          <span>You</span>
+        </div>
+        <div class="status-item">
+          <span class="status-dot" id="remoteStatus"></span>
+          <span>Peer</span>
+        </div>
+      </div>
+      <div class="connection-stats">
+        <div><span>Connection:</span> <span id="connectionType">--</span></div>
+        <div><span>Latency:</span> <span id="connectionLatency">--</span>ms</div>
+        <div><span>Packet Loss:</span> <span id="packetLoss">--</span>%</div>
+        <div><span>Bandwidth:</span> <span id="bandwidth">--</span>kbps</div>
+      </div>
+      <div class="session-timer">
+        <span>Call Duration:</span>
+        <span id="callTimer">00:00:00</span>
+      </div>
+    </div>
+    
+    <div id="audioControls" class="audio-controls">
+      <div class="control-group">
+        <button id="muteBtn">Mute Microphone</button>
+        <div class="voice-indicator">
+          <span>Your Voice:</span>
+          <div id="localIndicator" class="indicator"></div>
+        </div>
+      </div>
+      <div class="control-group">
+        <div class="volume-control">
+          <span>Volume:</span>
+          <input type="range" id="volumeSlider" class="volume-slider" min="0" max="1" step="0.1" value="1">
+        </div>
+        <div class="voice-indicator">
+          <span>Peer Voice:</span>
+          <div id="remoteIndicator" class="indicator"></div>
+        </div>
+      </div>
+      
+      <div class="audio-visualizer">
+        <canvas id="localVisualizer" width="200" height="40"></canvas>
+        <canvas id="remoteVisualizer" width="200" height="40"></canvas>
+      </div>
+      
+      <div class="recording-controls">
+        <button id="startRecording">Start Recording</button>
+        <button id="stopRecording" disabled>Stop Recording</button>
+      </div>
+      <div id="recordingStatus"></div>
+    </div>
+    
+    <div id="callSummary" class="call-summary">
+      <h3>Call Summary</h3>
+      <div id="summaryDetails"></div>
+      <button id="closeSummary">Close</button>
+    </div>
+  </div>
+  
+  <footer>
+    <p>&copy; 2025 Enhanced Voice Chat</p>
+  </footer>
 
+  <script src="/socket.io/socket.io.js"></script>
+  <script>
+    document.addEventListener('DOMContentLoaded', () => {
+      // DOM Elements
+      const createBtn = document.getElementById('createBtn');
+      const joinBtn = document.getElementById('joinBtn');
+      const leaveBtn = document.getElementById('leaveBtn');
+      const roomInput = document.getElementById('roomCode');
+      const status = document.getElementById('status');
+      const connectionInfo = document.getElementById('connectionInfo');
+      const currentRoom = document.getElementById('currentRoom');
+      const copyBtn = document.getElementById('copyBtn');
+      const audioControls = document.getElementById('audioControls');
+      const muteBtn = document.getElementById('muteBtn');
+      const volumeSlider = document.getElementById('volumeSlider');
+      const localIndicator = document.getElementById('localIndicator');
+      const remoteIndicator = document.getElementById('remoteIndicator');
+      const localStatus = document.getElementById('localStatus');
+      const remoteStatus = document.getElementById('remoteStatus');
+      const audioInputSelect = document.getElementById('audioInput');
+      const deviceSelection = document.getElementById('deviceSelection');
+      const startRecordingBtn = document.getElementById('startRecording');
+      const stopRecordingBtn = document.getElementById('stopRecording');
+      const recordingStatus = document.getElementById('recordingStatus');
+      const callSummary = document.getElementById('callSummary');
+      const closeSummaryBtn = document.getElementById('closeSummary');
+      
+      // WebRTC Configuration
+      const config = {
+        iceServers: [
+          { urls: 'stun:stun.l.google.com:19302' },
+          { urls: 'stun:stun1.l.google.com:19302' }
+        ]
+      };
+      
+      // State Variables
+      let socket = null;
+      let localStream = null;
+      let peerConnection = null;
+      let remoteAudio = null;
+      let room = null;
+      let isCaller = false;
+      let isConnected = false;
+      let isMuted = false;
+      let localAnalyser = null;
+      let remoteAnalyser = null;
+      let audioContext = null;
+      let audioInputDevices = [];
+      let mediaRecorder = null;
+      let recordedChunks = [];
+      let recordingStartTime = null;
+      let callTimerInterval = null;
+      let callStartTime = null;
+      let localVisualizerCtx, remoteVisualizerCtx;
+      
+      // Initialize Socket Connection
+      function initializeSocket() {
+        socket = io();
+        
+        // Socket Event Handlers
+        socket.on('connect', () => {
+          updateStatus('Connected to server', 'success');
+          localStatus.classList.add('connected');
+        });
+        
+        socket.on('disconnect', () => {
+          updateStatus('Disconnected from server', 'error');
+          localStatus.classList.remove('connected');
+          localStatus.classList.add('disconnected');
+        });
+        
+        socket.on('reconnecting', () => {
+          updateStatus('Connection lost. Attempting to reconnect...', 'warning');
+          localStatus.classList.remove('connected');
+          localStatus.classList.add('connecting');
+        });
+        
+        socket.on('reconnected', () => {
+          updateStatus('Connection reestablished!', 'success');
+          localStatus.classList.remove('connecting');
+          localStatus.classList.add('connected');
+          
+          if (room) {
+            socket.emit('join', room);
+            if (isCaller) {
+              socket.emit('ready', room);
+            }
+          }
+        });
+        
+        socket.on('created', handleRoomCreated);
+        socket.on('joined', handleRoomJoined);
+        socket.on('full', handleRoomFull);
+        socket.on('ready', handlePeerReady);
+        socket.on('offer', handleOffer);
+        socket.on('answer', handleAnswer);
+        socket.on('ice', handleIceCandidate);
+        socket.on('leave', handlePeerLeave);
+        socket.on('error', handleError);
+        socket.on('recording_notification', handleRecordingNotification);
+        socket.on('offline_message', handleOfflineMessage);
+        socket.on('pending_messages', handlePendingMessages);
+      }
+      
+      // Room Event Handlers
+      function handleRoomCreated(roomId) {
+        room = roomId;
+        isCaller = true;
+        updateRoomUI(true);
+        updateStatus(`Room created with code: ${room}`, 'success');
+      }
+      
+      function handleRoomJoined(roomId) {
+        room = roomId;
+        isCaller = false;
+        updateRoomUI(true);
+        updateStatus('Joined room, connecting...', 'warning');
+        socket.emit('ready', room);
+        socket.emit('check_messages', room);
+      }
+      
+      function handleRoomFull() {
+        updateStatus('Room is full. Please try a different code.', 'error');
+      }
+      
+      function handlePeerReady() {
+        if (isCaller) {
+          remoteStatus.classList.add('connecting');
+          startCall(true);
+        }
+      }
+      
+      function handlePeerLeave() {
+        updateStatus('Peer has left the room', 'warning');
+        cleanupPeerConnection();
+        remoteStatus.classList.remove('connected', 'connecting');
+        remoteStatus.classList.add('disconnected');
+      }
+      
+      function handleError(error) {
+        updateStatus(`Error: ${error}`, 'error');
+      }
+      
+      function handleRecordingNotification(message) {
+        showNotification(message);
+      }
+      
+      function handleOfflineMessage({ from, message }) {
+        showNotification(`Offline message from ${from}: ${message}`);
+      }
+      
+      function handlePendingMessages(messages) {
+        if (messages.length) {
+          showNotification(`You have ${messages.length} pending messages`);
+        }
+      }
+      
+      // WebRTC Handlers
+      async function startCall(shouldMakeOffer, deviceId = null) {
+        try {
+          const constraints = {
+            audio: {
+              deviceId: deviceId ? { exact: deviceId } : undefined,
+              echoCancellation: true,
+              noiseSuppression: true,
+              autoGainControl: true
+            }
+          };
+          
+          localStream = await navigator.mediaDevices.getUserMedia(constraints);
+          
+          // Create peer connection
+          peerConnection = new RTCPeerConnection(config);
+          
+          // Add local tracks to peer connection
+          localStream.getTracks().forEach(track => {
+            peerConnection.addTrack(track, localStream);
+          });
+          
+          // Set up event handlers
+          peerConnection.onicecandidate = handleLocalIceCandidate;
+          peerConnection.ontrack = handleRemoteTrack;
+          peerConnection.oniceconnectionstatechange = handleConnectionStateChange;
+          
+          // Set up audio analysis
+          setupAudioAnalysis();
+          
+          // Create and send offer if initiator
+          if (shouldMakeOffer) {
+            const offer = await peerConnection.createOffer();
+            await peerConnection.setLocalDescription(offer);
+            socket.emit('offer', { room, offer });
+          }
+          
+          // Show audio controls and device selection
+          audioControls.style.display = 'block';
+          if (!audioInputDevices.length) {
+            getAudioDevices();
+          }
+          
+          // Notify that call is connected
+          socket.emit('call_connected', room);
+          
+        } catch (error) {
+          console.error('Error starting call:', error);
+          updateStatus('Could not access your microphone. Please check permissions.', 'error');
+        }
+      }
+      
+      async function handleOffer({ offer }) {
+        try {
+          remoteStatus.classList.add('connecting');
+          await startCall(false);
+          await peerConnection.setRemoteDescription(new RTCSessionDescription(offer));
+          const answer = await peerConnection.createAnswer();
+          await peerConnection.setLocalDescription(answer);
+          socket.emit('answer', { room, answer });
+        } catch (error) {
+          console.error('Error handling offer:', error);
+          updateStatus('Failed to process connection offer', 'error');
+        }
+      }
+      
+      function handleAnswer({ answer }) {
+        peerConnection.setRemoteDescription(new RTCSessionDescription(answer))
+          .catch(error => {
+            console.error('Error setting remote description:', error);
+          });
+      }
+      
+      function handleLocalIceCandidate(event) {
+        if (event.candidate) {
+          socket.emit('ice', { room, candidate: event.candidate });
+        }
+      }
+      
+      function handleIceCandidate({ candidate }) {
+        if (peerConnection) {
+          peerConnection.addIceCandidate(new RTCIceCandidate(candidate))
+            .catch(error => {
+              console.error('Error adding ICE candidate:', error);
+            });
+        }
+      }
+      
+      function handleRemoteTrack(event) {
+        remoteAudio = new Audio();
+        remoteAudio.srcObject = event.streams[0];
+        remoteAudio.autoplay = true;
+        remoteAudio.volume = volumeSlider.value;
+        
+        // Set up voice activity detection for remote stream
+        setupRemoteVoiceActivity(event.streams[0]);
+        
+        // Update UI
+        isConnected = true;
+        remoteStatus.classList.remove('connecting');
+        remoteStatus.classList.add('connected');
+        updateStatus('Connected! You can now speak with your peer.', 'success');
+        
+        // Start connection stats monitoring
+        startConnectionStats();
+        
+        // Start call timer
+        startCallTimer();
+      }
+      
+      function handleConnectionStateChange() {
+        if (!peerConnection) return;
+        
+        const state = peerConnection.iceConnectionState;
+        console.log('ICE connection state:', state);
+        
+        switch(state) {
+          case 'connected':
+          case 'completed':
+            isConnected = true;
+            remoteStatus.classList.remove('connecting');
+            remoteStatus.classList.add('connected');
+            break;
+          case 'disconnected':
+          case 'failed':
+          case 'closed':
+            isConnected = false;
+            remoteStatus.classList.remove('connected', 'connecting');
+            remoteStatus.classList.add('disconnected');
+            break;
+        }
+      }
+      
+      // Audio Analysis and Visualization
+      function setupAudioAnalysis() {
+        if (!audioContext) {
+          audioContext = new (window.AudioContext || window.webkitAudioContext)();
+        }
+        
+        // Local audio analysis
+        const localSource = audioContext.createMediaStreamSource(localStream);
+        localAnalyser = audioContext.createAnalyser();
+        localAnalyser.fftSize = 256;
+        localSource.connect(localAnalyser);
+        
+        const localData = new Uint8Array(localAnalyser.frequencyBinCount);
+        
+        function checkLocalVolume() {
+          if (!localAnalyser) return;
+          
+          localAnalyser.getByteFrequencyData(localData);
+          const average = localData.reduce((sum, value) => sum + value, 0) / localData.length;
+          
+          if (average > 15) {
+            localIndicator.classList.add('active');
+          } else {
+            localIndicator.classList.remove('active');
+          }
+          
+          requestAnimationFrame(checkLocalVolume);
+        }
+        
+        checkLocalVolume();
+        setupAudioVisualizers();
+      }
+      
+      function setupRemoteVoiceActivity(stream) {
+        const remoteSource = audioContext.createMediaStreamSource(stream);
+        remoteAnalyser = audioContext.createAnalyser();
+        remoteAnalyser.fftSize = 256;
+        remoteSource.connect(remoteAnalyser);
+        
+        const remoteData = new Uint8Array(remoteAnalyser.frequencyBinCount);
+        
+        function checkRemoteVolume() {
+          if (!remoteAnalyser) return;
+          
+          remoteAnalyser.getByteFrequencyData(remoteData);
+          const average = remoteData.reduce((sum, value) => sum + value, 0) / remoteData.length;
+          
+          if (average > 15) {
+            remoteIndicator.classList.add('active');
+          } else {
+            remoteIndicator.classList.remove('active');
+          }
+          
+          requestAnimationFrame(checkRemoteVolume);
+        }
+        
+        checkRemoteVolume();
+        setupAudioVisualizers();
+      }
+      
+      function setupAudioVisualizers() {
+        const localCanvas = document.getElementById('localVisualizer');
+        const remoteCanvas = document.getElementById('remoteVisualizer');
+        
+        localVisualizerCtx = localCanvas.getContext('2d');
+        remoteVisualizerCtx = remoteCanvas.getContext('2d');
+        
+        function drawVisualizer(analyser, canvas, ctx) {
+          if (!analyser) return;
+          
+          const bufferLength = analyser.frequencyBinCount;
+          const dataArray = new Uint8Array(bufferLength);
+          
+          function draw() {
+            requestAnimationFrame(draw);
+            
+            analyser.getByteFrequencyData(dataArray);
+            
+            ctx.fillStyle = 'rgb(20, 20, 20)';
+            ctx.fillRect(0, 0, canvas.width, canvas.height);
+            
+            ctx.lineWidth = 2;
+            ctx.strokeStyle = 'rgb(0, 200, 200)';
+            ctx.beginPath();
+            
+            const sliceWidth = canvas.width * 1.0 / bufferLength;
+            let x = 0;
+            
+            for (let i = 0; i < bufferLength; i++) {
+              const v = dataArray[i] / 128.0;
+              const y = v * canvas.height / 2;
+              
+              if (i === 0) {
+                ctx.moveTo(x, y);
+              } else {
+                ctx.lineTo(x, y);
+              }
+              
+              x += sliceWidth;
+            }
+            
+            ctx.lineTo(canvas.width, canvas.height / 2);
+            ctx.stroke();
+          }
+          
+          draw();
+        }
+        
+        drawVisualizer(localAnalyser, localCanvas, localVisualizerCtx);
+        drawVisualizer(remoteAnalyser, remoteCanvas, remoteVisualizerCtx);
+      }
+      
+      // Connection Stats
+      function startConnectionStats() {
+        if (!peerConnection) return;
+        
+        const statsInterval = setInterval(async () => {
+          if (!peerConnection || peerConnection.iceConnectionState !== 'connected') {
+            clearInterval(statsInterval);
+            return;
+          }
+          
+          try {
+            const stats = await peerConnection.getStats();
+            let latency = '--';
+            let packetLoss = '--';
+            let connectionType = '--';
+            let bandwidth = '--';
+            
+            stats.forEach(report => {
+              if (report.type === 'candidate-pair' && report.nominated) {
+                latency = report.currentRoundTripTime ? (report.currentRoundTripTime * 1000).toFixed(0) : '--';
+              }
+              if (report.type === 'remote-inbound-rtp') {
+                packetLoss = report.packetsLost ? ((report.packetsLost / report.packetsReceived) * 100).toFixed(1) : '0';
+              }
+              if (report.type === 'local-candidate' || report.type === 'remote-candidate') {
+                if (report.candidateType) {
+                  connectionType = report.candidateType === 'relay' ? 'Relayed' : 
+                                report.candidateType === 'srflx' ? 'STUN' : 
+                                report.candidateType === 'host' ? 'Direct' : connectionType;
+                }
+              }
+              if (report.type === 'outbound-rtp') {
+                if (report.bytesSent) {
+                  const bytesPerSecond = report.bytesSent / (report.timestamp - startCallTime);
+                  bandwidth = (bytesPerSecond * 8 / 1000).toFixed(1);
+                }
+              }
+            });
+            
+            document.getElementById('connectionLatency').textContent = latency;
+            document.getElementById('packetLoss').textContent = packetLoss;
+            document.getElementById('connectionType').textContent = connectionType;
+            document.getElementById('bandwidth').textContent = bandwidth;
+          } catch (error) {
+            console.error('Error getting stats:', error);
+          }
+        }, 2000);
+      }
+      
+      // Device Management
+      async function getAudioDevices() {
+        try {
+          const devices = await navigator.mediaDevices.enumerateDevices();
+          audioInputDevices = devices.filter(device => device.kind === 'audioinput');
+          
+          audioInputSelect.innerHTML = '';
+          
+          audioInputDevices.forEach(device => {
+            const option = document.createElement('option');
+            option.value = device.deviceId;
+            option.text = device.label || `Microphone ${audioInputSelect.length + 1}`;
+            audioInputSelect.appendChild(option);
+          });
+          
+          deviceSelection.style.display = 'block';
+        } catch (error) {
+          console.error('Error enumerating devices:', error);
+        }
+      }
+      
+      // Recording Functions
+      function startRecording() {
+        if (!localStream) return;
+        
+        recordedChunks = [];
+        recordingStartTime = Date.now();
+        
+        try {
+          mediaRecorder = new MediaRecorder(localStream);
+          
+          mediaRecorder.ondataavailable = event => {
+            if (event.data.size > 0) {
+              recordedChunks.push(event.data);
+            }
+          };
+          
+          mediaRecorder.onstop = () => {
+            const blob = new Blob(recordedChunks, { type: 'audio/webm' });
+            const url = URL.createObjectURL(blob);
+            
+            const recordingDuration = ((Date.now() - recordingStartTime) / 1000).toFixed(1);
+            
+            recordingStatus.style.display = 'block';
+            recordingStatus.innerHTML = `
+              Recording saved (${recordingDuration}s): 
+              <a href="${url}" download="recording-${new Date().toISOString().slice(0,10)}.webm">Download</a>
+            `;
+          };
+          
+          mediaRecorder.start(100);
+          startRecordingBtn.disabled = true;
+          stopRecordingBtn.disabled = false;
+          updateStatus('Recording started', 'success');
+          socket.emit('recording_started', room);
+        } catch (error) {
+          console.error('Error starting recording:', error);
+          updateStatus('Recording not supported in this browser', 'error');
+        }
+      }
+      
+      function stopRecording() {
+        if (mediaRecorder && mediaRecorder.state !== 'inactive') {
+          mediaRecorder.stop();
+          startRecordingBtn.disabled = false;
+          stopRecordingBtn.disabled = true;
+          socket.emit('recording_stopped', room);
+        }
+      }
+      
+      // Timer Functions
+      function startCallTimer() {
+        callStartTime = Date.now();
+        clearInterval(callTimerInterval);
+        
+        callTimerInterval = setInterval(() => {
+          const elapsed = Date.now() - callStartTime;
+          const hours = Math.floor(elapsed / 3600000).toString().padStart(2, '0');
+          const minutes = Math.floor((elapsed % 3600000) / 60000).toString().padStart(2, '0');
+          const seconds = Math.floor((elapsed % 60000) / 1000).toString().padStart(2, '0');
+          
+          document.getElementById('callTimer').textContent = `${hours}:${minutes}:${seconds}`;
+        }, 1000);
+      }
+      
+      function stopCallTimer() {
+        clearInterval(callTimerInterval);
+        callTimerInterval = null;
+      }
+      
+      // Call Summary
+      function showCallSummary() {
+        const summaryDetails = document.getElementById('summaryDetails');
+        const duration = document.getElementById('callTimer').textContent;
+        
+        summaryDetails.innerHTML = `
+          <p><strong>Room Code:</strong> ${room}</p>
+          <p><strong>Duration:</strong> ${duration}</p>
+          <p><strong>Connection Type:</strong> ${document.getElementById('connectionType').textContent}</p>
+          <p><strong>Average Latency:</strong> ${document.getElementById('connectionLatency').textContent}ms</p>
+          <p><strong>Packet Loss:</strong> ${document.getElementById('packetLoss').textContent}%</p>
+        `;
+        
+        callSummary.style.display = 'block';
+      }
+      
+      // Notification System
+      function showNotification(message) {
+        // Check if browser supports notifications
+        if (!("Notification" in window)) {
+          // Fallback to in-app notification
+          const notification = document.createElement('div');
+          notification.className = 'notification';
+          notification.textContent = message;
+          document.body.appendChild(notification);
+          
+          setTimeout(() => {
+            notification.remove();
+          }, 5000);
+          return;
+        }
+        
+        if (Notification.permission === "granted") {
+          new Notification(message);
+        } else if (Notification.permission !== "denied") {
+          Notification.requestPermission().then(permission => {
+            if (permission === "granted") {
+              new Notification(message);
+            } else {
+              // Fallback to in-app notification
+              const notification = document.createElement('div');
+              notification.className = 'notification';
+              notification.textContent = message;
+              document.body.appendChild(notification);
+              
+              setTimeout(() => {
+                notification.remove();
+              }, 5000);
+            }
+          });
+        }
+      }
+      
+      // UI Updates
+      function updateStatus(message, type) {
+        status.textContent = message;
+        status.className = '';
+        status.classList.add(`status-${type}`);
+      }
+      
+      function updateRoomUI(isInRoom) {
+        if (isInRoom) {
+          createBtn.disabled = true;
+          joinBtn.disabled = true;
+          leaveBtn.disabled = false;
+          roomInput.disabled = true;
+          connectionInfo.style.display = 'block';
+          currentRoom.textContent = room;
+        } else {
+          createBtn.disabled = false;
+          joinBtn.disabled = false;
+          leaveBtn.disabled = true;
+          roomInput.disabled = false;
+          roomInput.value = '';
+          audioControls.style.display = 'none';
+          connectionInfo.style.display = 'none';
+          status.style.display = 'none';
+          deviceSelection.style.display = 'none';
+          recordingStatus.style.display = 'none';
+          callSummary.style.display = 'none';
+          stopCallTimer();
+        }
+      }
+      
+      // Clean up resources
+      function cleanupPeerConnection() {
+        if (peerConnection) {
+          peerConnection.onicecandidate = null;
+          peerConnection.ontrack = null;
+          peerConnection.oniceconnectionstatechange = null;
+          peerConnection.close();
+          peerConnection = null;
+        }
+        
+        if (localStream) {
+          localStream.getTracks().forEach(track => track.stop());
+          localStream = null;
+        }
+        
+        if (remoteAudio) {
+          remoteAudio.srcObject = null;
+          remoteAudio = null;
+        }
+        
+        if (mediaRecorder && mediaRecorder.state !== 'inactive') {
+          mediaRecorder.stop();
+        }
+        
+        isConnected = false;
+        audioControls.style.display = 'none';
+      }
+      
+      function leaveRoom() {
+        if (room) {
+          showCallSummary();
+          socket.emit('leave', room);
+          cleanupPeerConnection();
+          room = null;
+          updateRoomUI(false);
+          updateStatus('You left the room', 'warning');
+        }
+      }
+      
+      // Event Listeners
+      createBtn.addEventListener('click', () => {
+        const randomRoom = Math.random().toString(36).substring(2, 8).toUpperCase();
+        socket.emit('create', randomRoom);
+      });
+      
+      joinBtn.addEventListener('click', () => {
+        const roomCode = roomInput.value.trim();
+        if (!roomCode) {
+          updateStatus('Please enter a room code', 'warning');
+          return;
+        }
+        socket.emit('join', roomCode);
+      });
+      
+      leaveBtn.addEventListener('click', () => {
+        if (isConnected) {
+          if (confirm('Are you sure you want to end the call?')) {
+            leaveRoom();
+          }
+        } else {
+          leaveRoom();
+        }
+      });
+      
+      muteBtn.addEventListener('click', () => {
+        if (!localStream) return;
+        
+        isMuted = !isMuted;
+        localStream.getAudioTracks().forEach(track => {
+          track.enabled = !isMuted;
+        });
+        
+        muteBtn.textContent = isMuted ? 'Unmute Microphone' : 'Mute Microphone';
+      });
+      
+      volumeSlider.addEventListener('input', () => {
+        if (remoteAudio) {
+          remoteAudio.volume = volumeSlider.value;
+        }
+      });
+      
+      copyBtn.addEventListener('click', () => {
+        navigator.clipboard.writeText(room)
+          .then(() => {
+            copyBtn.textContent = 'Copied!';
+            setTimeout(() => {
+              copyBtn.textContent = 'Copy';
+            }, 2000);
+          })
+          .catch(err => {
+            console.error('Failed to copy room code:', err);
+          });
+      });
+      
+      audioInputSelect.addEventListener('change', (e) => {
+        if (room && localStream) {
+          const deviceId = e.target.value;
+          leaveRoom();
+          setTimeout(() => {
+            socket.emit('join', room);
+            startCall(isCaller, deviceId);
+          }, 500);
+        }
+      });
+      
+      startRecordingBtn.addEventListener('click', startRecording);
+      stopRecordingBtn.addEventListener('click', stopRecording);
+      closeSummaryBtn.addEventListener('click', () => {
+        callSummary.style.display = 'none';
+      });
+      
+      // Handle window unload
+      window.addEventListener('beforeunload', () => {
+        if (room) {
+          socket.emit('leave', room);
+        }
+      });
+      
+      // Request notification permission on page load
+      if ("Notification" in window) {
+        Notification.requestPermission();
+      }
+      
+      // Initialize
+      initializeSocket();
+    });
+  </script>
+</body>
+</html>
